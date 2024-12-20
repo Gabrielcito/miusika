@@ -57,7 +57,7 @@ export const App = () => {
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                 >        
-                    <p id='textContainer'>{fileContent ?? 'Arrastra un archivo'}</p>
+                    <p id='textContainer'>{fileContent ?? 'Arrastra un archivo de audio'}</p>
                 </main>
                 
 
