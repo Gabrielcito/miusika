@@ -1,42 +1,172 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+#container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: auto;
+}
+
+
+#boxContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  width: 80vw;
+  background-color: rgb(0, 0, 0);
+  filter: drop-shadow(
+    0 0 25px rgba(0, 0, 0)
+  );
+  border-radius: 50px;
   text-align: center;
+  text-justify: auto;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+#canvasContainer {
+  width: 80vw;
+  height: 80vh;
+  background-color: rgb(0, 0, 0);
+  filter: drop-shadow(
+    0 0 25px rgba(0, 0, 0)
+  );
+
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+#myCanvas{
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+#textContainer{
+  color: rgb(255, 255, 255);
+  font-size: xx-large;
+}
+
+#resetButton{
+  position: fixed;
+  width: 10rem;
+  background-color: rgba(0, 0, 0, 0.8); 
+  color: white; 
+  padding: 10px; 
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  font-size: larger;
+  border: 0;
+  cursor: pointer
+}
+
+#resetButton:hover {
+  filter: drop-shadow(
+    0 0 25px rgba(0, 0, 0)
+  );
+}
+
+#resetButton:active {
+  transform: scale(0.95);
+}
+
+/* Media Query para dispositivos más grandes (computadores) */
+@media (min-width: 768px) {
+  #resetButton {
+    bottom: 20px;
+    right: 2rem;
   }
-  to {
-    transform: rotate(360deg);
+}
+
+/* Media Query para dispositivos más pequeños (móviles, tabletas) */
+@media (max-width: 767px) {
+  #resetButton {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+#paramSlider{
+  position: fixed;
+  width: 10rem;
+  display: flex;
+  justify-content: center;
+  left: 2rem;
+  top: 2rem;
 }
 
-.card {
-  padding: 2em;
+.slider {
+  appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #ffffff;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
 }
 
-.read-the-docs {
-  color: #888;
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #000000;
+  cursor: pointer;
+}
+
+
+.dropbtn {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 20px;
+  min-width: 160px;
+}
+
+/* Contenedor del menú */
+.dropdown {
+  position: absolute;
+  display: inline-block;
+  left: 2rem;
+  top: 2rem;
+}
+
+/* Contenido del menú */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #00000000;
+  min-width: 160px;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(-20px); /* Desplazamiento inicial hacia arriba */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Transiciones para suavidad */
+}
+
+/* Enlaces dentro del menú */
+.dropdown-content a {
+  color: rgb(255, 255, 255);
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Cambiar el color de los enlaces al pasar el ratón */
+.dropdown-content a:hover {
+  background-color: #8a8a8a;
+}
+
+/* Mostrar el menú con animación */
+.dropdown:hover .dropdown-content {
+  display: block;
+  opacity: 1; /* Aparece gradualmente */
+  transform: translateY(0); /* Desplazamiento hacia la posición final */
+}
+
+/* Efecto en el botón cuando el contenido está visible */
+.dropdown:hover .dropbtn {
+  filter: drop-shadow(0 0 25px rgba(0, 0, 0));
 }
