@@ -5,9 +5,10 @@ export const useAudioAnalyzer = (audioFile) => {
     const [bufferLength, setBufferLength] = useState(0);
 
     useEffect(() => {
-        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const context = new AudioContext();
 
         const audioElement = new Audio(audioFile);
+        audioElement.volume = 0.5;
         audioElement.crossOrigin = "anonymous";
 
         const analyser = context.createAnalyser();

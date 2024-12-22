@@ -60,8 +60,12 @@ export const App = () => {
                     <p id='textContainer'>{fileContent ?? 'Arrastra un archivo de audio'}</p>
                 </main>
                 
-
-                { audioUrl && <MusicCanvas audioFile={audioUrl} compression={compression}/>}
+                <div 
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                >
+                    { audioUrl && <MusicCanvas audioFile={audioUrl} compression={compression}/>}
+                </div>
             </div>
 
             <button id='resetButton'

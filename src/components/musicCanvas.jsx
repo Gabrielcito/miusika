@@ -20,7 +20,7 @@ export const MusicCanvas = ({ audioFile, compression }) => {
         const frameInterval = 1000 / fps;
         let lastFrameTime = 0;
 
-        const resizeCanvas = (timestamp) => {
+        const tick = (timestamp) => {
             canvas.width = containerRef.current.clientWidth;
             canvas.height = containerRef.current.clientHeight;
 
@@ -32,7 +32,7 @@ export const MusicCanvas = ({ audioFile, compression }) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (analyserNode) {
-                    const dataArray = new Uint8Array(bufferLength);
+                    let dataArray = new Uint8Array(bufferLength);
                     analyserNode.getByteFrequencyData(dataArray);
 
                     const rectWidth = 10;
@@ -49,39 +49,50 @@ export const MusicCanvas = ({ audioFile, compression }) => {
                     }
 
                     //LOGARITMIC COMPRESSION
-                    if(compression === 'log'){
+                    if (compression === 'log') {
+                        
                         for (let i = 0; i < numRectangles; i++) {
-                            const start = Math.floor(Math.pow(i / numRectangles, 2) * bufferLength); // Escala logarítmica
-                            const end = Math.floor(Math.pow((i + 1) / numRectangles, 2) * bufferLength);
-    
+                            const start = Math.floor(Math.pow(i / numRectangles, 1.5) * bufferLength); // Escala logarítmica
+                            const end = Math.floor(Math.pow((i + 1) / numRectangles, 1.5) * bufferLength);
+                    
                             let sum = 0;
                             let count = 0;
-    
+                    
                             for (let j = start; j < end; j++) {
-                                sum += dataArray[j];
-                                count++;
+                                if (dataArray[j] > 0) { // Ignorar valores 0
+                                    sum += dataArray[j];
+                                    count++;
+                                }
                             }
-    
-                            finalDataArray[i] = count > 0 ? sum / count : 0; // Promediar si hay datos
+                    
+                            // Promediar valores válidos o usar mínimo predeterminado
+                            finalDataArray[i] = sum / count;
                         }
                     }
 
 
                     //CHUNK COMPRESSION
                     if(compression === 'chunk'){
-                        const chunkSize = Math.floor(bufferLength / numRectangles); // Tamaño de cada grupo
+                        const binSize = Math.floor(dataArray.length / numRectangles); // Tamaño de cada bin
 
-                        // Rellenar el array reducido
                         for (let i = 0; i < numRectangles; i++) {
                             let sum = 0;
-                            
-                            // Sumar los valores de la frecuencia de cada grupo
-                            for (let j = 0; j < chunkSize; j++) {
-                                sum += dataArray[i * chunkSize + j];
+                            for (let j = 0; j < binSize; j++) {
+                                sum += dataArray[i * binSize + j];
                             }
-                            
-                            // Promediar el valor del grupo
-                            finalDataArray[i] = sum / chunkSize;
+                            finalDataArray[i] = sum / binSize; // Promedio del bin
+                        }
+                    
+                        // Si hay datos sobrantes, agrégalos al último bin
+                        const remainderStart = numRectangles * binSize;
+                        if (remainderStart < dataArray.length) {
+                            let sum = 0;
+                            let count = 0;
+                            for (let i = remainderStart; i < dataArray.length; i++) {
+                                sum += dataArray[i];
+                                count++;
+                            }
+                            finalDataArray[finalDataArray.length - 1] += sum / count;
                         }
                     }
                 
@@ -114,9 +125,9 @@ export const MusicCanvas = ({ audioFile, compression }) => {
 
                         const radioCirculo = 10;
                         ctx.beginPath();
-                        ctx.arc(xCentro, yBase - barHeight - radioCirculo, radioCirculo, 0, Math.PI * 2);
-                        ctx.fillStyle = color;
-                        ctx.fill();
+                            ctx.arc(xCentro, yBase - barHeight - radioCirculo, radioCirculo, 0, Math.PI * 2);
+                            ctx.fillStyle = color;
+                            ctx.fill();
                         ctx.closePath();
 
                         // Resetear el glow
@@ -127,10 +138,10 @@ export const MusicCanvas = ({ audioFile, compression }) => {
             }
 
             tiempo = tiempo + 0.05;
-            requestAnimationFrame(resizeCanvas);
+            requestAnimationFrame(tick);
         };
 
-        resizeCanvas();
+        tick();
 
     }, [analyserNode, bufferLength, compression]);
 
