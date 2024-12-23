@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 import { MusicCanvas } from './components/musicCanvas';
+import { SlArrowRight } from "react-icons/sl";
 
 export const App = () => {
 
@@ -42,12 +43,23 @@ export const App = () => {
     return (
         <>
 
-            <div className="dropdown">
+            <div className="paste-button">
                 <button className="dropbtn">Parametros</button>
                 <div className="dropdown-content">
-                    <a onClick={ () => {selectCompression("raw")} }>Raw</a>
-                    <a onClick={ () => {selectCompression("chunk")} }>Chunk Compression</a>
-                    <a onClick={ () => {selectCompression("log")} }> Logaritmic Compression</a>
+                    <span>
+                        Compression
+                        <SlArrowRight style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '20px',
+                        }}/>
+                    </span>
+                    <div className="dropdown-content-v">
+                        <a onClick={ () => {selectCompression("raw")} }>Raw</a>
+                        <a onClick={ () => {selectCompression("chunk")} }>Chunk Compression</a>
+                        <a onClick={ () => {selectCompression("log")} }> Logaritmic Compression</a>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -71,7 +83,7 @@ export const App = () => {
             <button id='resetButton'
                 onClick={resetCanvas}
             >
-            reset
+            RESET
             </button>
 
         </>

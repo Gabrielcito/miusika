@@ -32,7 +32,7 @@ export const MusicCanvas = ({ audioFile, compression }) => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (analyserNode) {
-                    let dataArray = new Uint8Array(bufferLength);
+                    const dataArray = new Uint8Array(bufferLength);
                     analyserNode.getByteFrequencyData(dataArray);
 
                     const rectWidth = 10;

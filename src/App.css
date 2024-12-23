@@ -1,3 +1,8 @@
+:root{
+  --borderRadius: 0px 0px 0px 15px;
+}
+
+
 #container {
   display: flex;
   justify-content: center;
@@ -44,23 +49,29 @@
 }
 
 #resetButton{
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   position: fixed;
-  width: 10rem;
-  background-color: rgba(0, 0, 0, 0.8); 
-  color: white; 
-  padding: 10px; 
-  border-radius: 10px;
   display: flex;
+  padding: 10px 15px; 
+  min-width: 10rem;
   justify-content: center;
+  border: 4px solid #4CAF50;
+  border-radius: 15px;
   font-size: larger;
-  border: 0;
-  cursor: pointer
+  color: #212121;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+
+  background: linear-gradient(to right, #4CAF50 50%, rgb(75, 74, 74) 50%);
+  background-size: 200% 100%;
+  background-position: right;
+  transition: background-position 0.5s ease-out, background-color 0.5s ease-out;
 }
 
 #resetButton:hover {
-  filter: drop-shadow(
-    0 0 25px rgba(0, 0, 0)
-  );
+  background-position: 0 0; /* Mueve el gradiente para mostrar el verde */
+  background-position: left; /* Desplaza el fondo para que se vea el color verde */
 }
 
 #resetButton:active {
@@ -84,89 +95,130 @@
   }
 }
 
-#paramSlider{
-  position: fixed;
-  width: 10rem;
-  display: flex;
-  justify-content: center;
-  left: 2rem;
+.paste-button {
+  position: absolute;
   top: 2rem;
+  left: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  transition: opacity 0.5s;
 }
 
-.slider {
-  appearance: none;
-  width: 100%;
-  height: 15px;
-  border-radius: 5px;  
-  background: #ffffff;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
+.paste-button:not(:focus){
+  opacity: 0.5;
+  z-index: 100;
 }
 
-.slider::-webkit-slider-thumb {
-  appearance: none;
-  appearance: none;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%; 
-  background: #000000;
+.paste-button:hover{
+  opacity: 1;
+}
+
+.dropbtn {
+  background-color: #4CAF50;
+  color: #212121;
+  padding: 10px 15px;
+  font-size: 15px;
+  font-weight: bold;
+  border: 2px solid transparent;
+  border-radius: 15px;
   cursor: pointer;
 }
 
-
-.dropbtn {
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  border-radius: 20px;
-  min-width: 160px;
-}
-
-/* Contenedor del menú */
-.dropdown {
-  position: absolute;
-  display: inline-block;
-  left: 2rem;
-  top: 2rem;
-}
-
-/* Contenido del menú */
 .dropdown-content {
   display: none;
-  position: absolute;
-  background-color: #00000000;
-  min-width: 160px;
+  font-size: 13px;
+  position: relative;  
   z-index: 1;
-  opacity: 0;
-  transform: translateY(-20px); /* Desplazamiento inicial hacia arriba */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Transiciones para suavidad */
+  min-width: 200px;
+  background-color: #212121;
+  border: 2px solid #4CAF50;
+  border-radius: 0px 15px 15px 15px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 }
 
-/* Enlaces dentro del menú */
-.dropdown-content a {
-  color: rgb(255, 255, 255);
-  padding: 12px 16px;
+.dropdown-content span {
+  color: #4CAF50;
+  padding: 8px 10px;
   text-decoration: none;
   display: block;
+  transition: 0.1s;
+  position: relative;
+  border-radius: 0px 12px 12px 12px;
 }
 
-/* Cambiar el color de los enlaces al pasar el ratón */
-.dropdown-content a:hover {
-  background-color: #8a8a8a;
+.dropdown-content span:hover{
+  background-color: #4CAF50;
+  color: #212121;
 }
 
-/* Mostrar el menú con animación */
-.dropdown:hover .dropdown-content {
+.dropdown-content a {
+  display: none;
+  color: #4CAF50;
+  padding: 8px 10px;
+  text-decoration: none;
+  transition: 0.1s;
+}
+
+
+.dropdown-content span:first-of-type:hover {
+  background-color: #4CAF50;
+}
+
+.dropdown-content-v{
+  display: none;
+  font-size: 13px;
+  position: absolute;
+  top: 0;  
+  left: 100%;  
+  margin-left: 10px;
+  z-index: 1;
+  min-width: 200px;
+  background-color: #212121;
+  border: 2px solid #4CAF50;
+  border-radius: 0px 15px 15px 15px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-content-v a {
+  display: none;
+  color: #4CAF50;
+  padding: 8px 10px;
+  text-decoration: none;
+  transition: 0.1s;
+}
+
+.dropdown-content:hover .dropdown-content-v{
   display: block;
-  opacity: 1; /* Aparece gradualmente */
-  transform: translateY(0); /* Desplazamiento hacia la posición final */
 }
 
-/* Efecto en el botón cuando el contenido está visible */
-.dropdown:hover .dropbtn {
-  filter: drop-shadow(0 0 25px rgba(0, 0, 0));
+.dropdown-content:hover .dropdown-content-v a{
+  display: block;
+}
+
+
+.dropdown-content a:hover {
+  background-color: #4CAF50;
+  color: #212121;
+}
+
+.dropdown-content a:first-of-type:hover {
+  background-color: #4CAF50;
+  border-radius: 0px 12px 0px 0px;
+}
+
+.dropdown-content a:last-of-type:hover {
+  background-color: #4CAF50;
+  border-radius: 0px 0px 12px 12px;
+}
+
+.dropdown-content a:focus {
+  background-color: #212121;
+  color: #4CAF50;
+}
+
+.paste-button:hover .dropbtn {
+  border-radius: 15px 15px 0px 0px;
+}
+
+.paste-button:hover .dropdown-content{
+  display: block;
 }
