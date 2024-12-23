@@ -142,7 +142,7 @@ export const MusicCanvas = ({ audioFile, compression, visual }) => {
                     
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
                     
-                    const radioCirculo = 100;
+                    const radioCirculo = 100 + Math.sin(tiempo + 0.05) * 5;
                     const circleColor ='rgb(0, 0, 0)'
 
                     const numRects = 360; // Número de rectángulos
@@ -179,6 +179,10 @@ export const MusicCanvas = ({ audioFile, compression, visual }) => {
 
                     ctx.beginPath();
                         ctx.arc(centerX, centerY, radioCirculo, 0, Math.PI * 2);
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; 
+                        ctx.shadowBlur = 5; 
+                        ctx.shadowOffsetX = 5; 
+                        ctx.shadowOffsetY = 5;
                         ctx.lineWidth = 5;
                         ctx.strokeStyle = circleColor; 
                         ctx.stroke();
