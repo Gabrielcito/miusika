@@ -8,7 +8,7 @@ export const useAudioAnalyzer = (audioFile) => {
         const context = new AudioContext();
 
         const audioElement = new Audio(audioFile);
-        audioElement.volume = 0.5;
+        audioElement.volume = 0.3;
         audioElement.crossOrigin = "anonymous";
 
         const analyser = context.createAnalyser();

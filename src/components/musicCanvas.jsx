@@ -3,7 +3,7 @@ import { useRef, useEffect } from "react";
 import { useAudioAnalyzer } from "./useAudioAnalyzer";
 
 
-export const MusicCanvas = ({ audioFile, compression }) => {
+export const MusicCanvas = ({ audioFile, compression, visual }) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
 
@@ -31,15 +31,16 @@ export const MusicCanvas = ({ audioFile, compression }) => {
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                if (analyserNode) {
-                    const dataArray = new Uint8Array(bufferLength);
-                    analyserNode.getByteFrequencyData(dataArray);
+                if (visual === 'bars') {
 
                     const rectWidth = 10;
                     const spacing = 16;
             
                     const numRectangles = Math.floor(canvas.width / (rectWidth + spacing));
                     const finalDataArray = new Uint8Array(numRectangles);
+
+                    const dataArray = new Uint8Array(numRectangles);
+                    analyserNode.getByteFrequencyData(dataArray);
 
                     //Raw
                     if (compression === "raw") {
@@ -52,21 +53,19 @@ export const MusicCanvas = ({ audioFile, compression }) => {
                     if (compression === 'log') {
                         
                         for (let i = 0; i < numRectangles; i++) {
-                            const start = Math.floor(Math.pow(i / numRectangles, 1.5) * bufferLength); // Escala logarítmica
-                            const end = Math.floor(Math.pow((i + 1) / numRectangles, 1.5) * bufferLength);
+                            const start = Math.floor(Math.pow(i / numRectangles, 2) * bufferLength); // Escala logarítmica
+                            const end = Math.floor(Math.pow((i + 1) / numRectangles, 2) * bufferLength);
                     
                             let sum = 0;
                             let count = 0;
                     
                             for (let j = start; j < end; j++) {
-                                if (dataArray[j] > 0) { // Ignorar valores 0
-                                    sum += dataArray[j];
-                                    count++;
-                                }
+                                sum += dataArray[j];
+                                count++;
                             }
                     
                             // Promediar valores válidos o usar mínimo predeterminado
-                            finalDataArray[i] = sum / count;
+                            finalDataArray[i] = Math.max(sum / count, 0);
                         }
                     }
 
@@ -135,7 +134,58 @@ export const MusicCanvas = ({ audioFile, compression }) => {
                         ctx.shadowBlur = 0;
                     }
                 }
-            }
+
+
+                if(visual === 'circunference'){
+                    const dataArray = new Uint8Array(360);
+                    analyserNode.getByteFrequencyData(dataArray);
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    const radioCirculo = 100;
+                    const circleColor ='rgb(0, 0, 0)'
+
+                    const numRects = 360; // Número de rectángulos
+
+                    // Dibujar los rectángulos a lo largo del radio
+                    const centerX = canvas.width / 2;
+                    const centerY = canvas.height / 2;
+
+                    for (let i = 0; i < numRects; i++) {
+
+                        const rectWidth = dataArray[i] * 1.5;
+                        const baseHeight = 2;
+
+                        const angle = ((i / numRects) * Math.PI * 2) + Math.PI;
+
+                        const colorFactor = 360 / (numRects - 1);
+                        const hue = (i * colorFactor);
+                        const color = `hsl(${hue}, 100%, 50%)`;
+
+                        // Calculate rectangle center position
+                        const rectCenterX = centerX + radioCirculo * Math.cos(angle);
+                        const rectCenterY = centerY + radioCirculo * Math.sin(angle);
+            
+                        ctx.save();
+            
+                        ctx.translate(rectCenterX, rectCenterY);
+                        ctx.rotate(angle);
+            
+                        ctx.fillStyle = color;
+                        ctx.fillRect(rectWidth, -baseHeight / 2, -rectWidth, baseHeight);
+            
+                        ctx.restore();
+                    }
+
+                    ctx.beginPath();
+                        ctx.arc(centerX, centerY, radioCirculo, 0, Math.PI * 2);
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = circleColor; 
+                        ctx.stroke();
+                    ctx.closePath();
+                
+                    }
+                }
 
             tiempo = tiempo + 0.05;
             requestAnimationFrame(tick);
@@ -143,7 +193,7 @@ export const MusicCanvas = ({ audioFile, compression }) => {
 
         tick();
 
-    }, [analyserNode, bufferLength, compression]);
+    }, [analyserNode, bufferLength, compression, visual]);
 
     return (
         <div id='canvasContainer' ref={containerRef}>

@@ -9,6 +9,8 @@ export const App = () => {
     const [ showCanvas, setshowCanvas ] = useState(false);
     const [ audioUrl, setAudioUrl ] = useState(null);
     const [ compression, setCompression ] = useState('raw');
+    const [ dropDownContent, setDropDownContent ] = useState('');
+    const [ visualization, setVisualization ] = useState('bars');
 
     const handleDrop = (event) => {
 
@@ -40,25 +42,61 @@ export const App = () => {
         setCompression(option);
     }
 
+    const handleDropDownHover = (option) => {
+        setDropDownContent(option)
+    }
+
+    const selectVisualization = (option) => {
+        setVisualization(option);
+    }
+
+
     return (
         <>
 
             <div className="paste-button">
                 <button className="dropbtn">Parametros</button>
                 <div className="dropdown-content">
-                    <span>
-                        Compression
+                    <span 
+                        onMouseEnter={() => {handleDropDownHover('visual')}}
+                    >
+                        Visual
                         <SlArrowRight style={{
                             position: 'absolute',
                             top: '12px',
                             right: '20px',
                         }}/>
                     </span>
-                    <div className="dropdown-content-v">
-                        <a onClick={ () => {selectCompression("raw")} }>Raw</a>
-                        <a onClick={ () => {selectCompression("chunk")} }>Chunk Compression</a>
-                        <a onClick={ () => {selectCompression("log")} }> Logaritmic Compression</a>
-                    </div>
+
+                    {
+                        dropDownContent === 'visual' && (
+                            <div className="dropdown-content-v">
+                                <a onClick={ () => {selectVisualization("bars")} }>Bars</a>
+                                <a onClick={ () => {selectVisualization("circunference")} }>Circunference</a>
+                            </div>
+                        )
+                    }
+
+                    <span
+                        onMouseEnter={() => {handleDropDownHover('compression')}}
+                    >
+                        Compression (bars)
+                        <SlArrowRight style={{
+                            position: 'absolute',
+                            top: '12px',
+                            right: '20px',
+                        }}/>
+                    </span>
+
+                    {
+                        dropDownContent === 'compression' && (
+                            <div className="dropdown-content-v">
+                                <a onClick={ () => {selectCompression("raw")} }>Raw</a>
+                                <a onClick={ () => {selectCompression("chunk")} }>Chunk Compression</a>
+                                <a onClick={ () => {selectCompression("log")} }> Logaritmic Compression (beta) </a>
+                            </div>
+                        )
+                    }
                     
                 </div>
             </div>
@@ -76,7 +114,12 @@ export const App = () => {
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
                 >
-                    { audioUrl && <MusicCanvas audioFile={audioUrl} compression={compression}/>}
+                    
+                        
+                        {audioUrl && <MusicCanvas audioFile={audioUrl} compression={compression} visual={visualization}/>}
+                    
+                
+                    
                 </div>
             </div>
 

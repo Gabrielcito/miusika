@@ -222,3 +222,12 @@
 .paste-button:hover .dropdown-content{
   display: block;
 }
+
+
+span:first-of-type:hover{
+  border-radius: 0px 12px 0px 0px;
+}
+
+span:last-of-type:hover{
+  border-radius: 0px 0px 12px 12px;
+}
