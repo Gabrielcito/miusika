@@ -25,7 +25,6 @@ export const useAudioAnalyzer = (audioFile) => {
 
         // Limpieza cuando el componente se desmonte
         return () => {
-            audioElement.pause();
             context.close();
         };
     }, [audioFile]);

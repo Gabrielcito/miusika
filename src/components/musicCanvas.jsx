@@ -31,6 +31,10 @@ export const MusicCanvas = ({ audioFile, compression, visual }) => {
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+                if(!analyserNode){
+                    return
+                }
+
                 if (visual === 'bars') {
 
                     const rectWidth = 10;
@@ -150,16 +154,19 @@ export const MusicCanvas = ({ audioFile, compression, visual }) => {
                     // Dibujar los rectángulos a lo largo del radio
                     const centerX = canvas.width / 2;
                     const centerY = canvas.height / 2;
+                    const minHeight = 10;
 
                     for (let i = 0; i < numRects; i++) {
 
-                        const rectWidth = dataArray[i] * 1.5;
+                        const rectWidth = Math.max(minHeight, Math.min(dataArray[i] * 1.5));;
                         const baseHeight = 2;
 
                         const angle = ((i / numRects) * Math.PI * 2) + Math.PI;
 
+                        const colorOffSet = tiempo * 5;
+
                         const colorFactor = 360 / (numRects - 1);
-                        const hue = (i * colorFactor);
+                        const hue = (i * colorFactor + colorOffSet) % 360;
                         const color = `hsl(${hue}, 100%, 50%)`;
 
                         // Calculate rectangle center position
@@ -196,6 +203,10 @@ export const MusicCanvas = ({ audioFile, compression, visual }) => {
         };
 
         tick();
+
+        return () => {
+            cancelAnimationFrame(tick);
+        }
 
     }, [analyserNode, bufferLength, compression, visual]);
 
