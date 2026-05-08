@@ -1,218 +1,224 @@
 /* eslint-disable react/prop-types */
 import { useRef, useEffect } from "react";
-import { useAudioAnalyzer } from "./useAudioAnalyzer";
 
-
-export const MusicCanvas = ({ audioFile, compression, visual }) => {
+export const MusicCanvas = ({ analyserNode, bufferLength, compression, visual }) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
-
-    const { analyserNode, bufferLength } = useAudioAnalyzer(audioFile);
+    const rafRef = useRef(null);
+    const tiempoRef = useRef(0);
+    const mousePosRef = useRef(null);
 
     useEffect(() => {
-        // Dibujo y animación en el canvas
         const canvas = canvasRef.current;
+        const container = containerRef.current;
+        if (!canvas || !container) return;
+
         const ctx = canvas.getContext("2d", { alpha: false });
-        let tiempo = 0;
 
-        // Control de fps
-        const fps = 24;
-        const frameInterval = 1000 / fps;
-        let lastFrameTime = 0;
+        const resizeCanvas = () => {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        };
+        resizeCanvas();
 
-        const tick = (timestamp) => {
-            canvas.width = containerRef.current.clientWidth;
-            canvas.height = containerRef.current.clientHeight;
+        const resizeObserver = new ResizeObserver(resizeCanvas);
+        resizeObserver.observe(container);
 
-            if (!lastFrameTime) lastFrameTime = timestamp;
+        const tick = () => {
+            tiempoRef.current += 0.016;
+            const t = tiempoRef.current;
 
-            const elapsed = timestamp - lastFrameTime;
-            if (elapsed > frameInterval) {
-                
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0a0a14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                if(!analyserNode){
-                    return
-                }
+            if (analyserNode) {
+                if (visual === 'bars') drawBars(ctx, canvas, analyserNode, bufferLength, compression, t);
+                else if (visual === 'circumference') drawCircumference(ctx, canvas, analyserNode, t);
+                else if (visual === 'wave') drawWave(ctx, canvas, analyserNode, bufferLength, t);
+            }
 
-                if (visual === 'bars') {
+            drawMouseGlow(ctx, mousePosRef.current, t);
 
-                    const rectWidth = 10;
-                    const spacing = 16;
-            
-                    const numRectangles = Math.floor(canvas.width / (rectWidth + spacing));
-                    const finalDataArray = new Uint8Array(numRectangles);
-
-                    const dataArray = new Uint8Array(numRectangles);
-                    analyserNode.getByteFrequencyData(dataArray);
-
-                    //Raw
-                    if (compression === "raw") {
-                        for (let i = 0; i < numRectangles; i++) {
-                            finalDataArray[i] = dataArray[i];
-                        }
-                    }
-
-                    //LOGARITMIC COMPRESSION
-                    if (compression === 'log') {
-                        
-                        for (let i = 0; i < numRectangles; i++) {
-                            const start = Math.floor(Math.pow(i / numRectangles, 2) * bufferLength); // Escala logarítmica
-                            const end = Math.floor(Math.pow((i + 1) / numRectangles, 2) * bufferLength);
-                    
-                            let sum = 0;
-                            let count = 0;
-                    
-                            for (let j = start; j < end; j++) {
-                                sum += dataArray[j];
-                                count++;
-                            }
-                    
-                            // Promediar valores válidos o usar mínimo predeterminado
-                            finalDataArray[i] = Math.max(sum / count, 0);
-                        }
-                    }
-
-
-                    //CHUNK COMPRESSION
-                    if(compression === 'chunk'){
-                        const binSize = Math.floor(dataArray.length / numRectangles); // Tamaño de cada bin
-
-                        for (let i = 0; i < numRectangles; i++) {
-                            let sum = 0;
-                            for (let j = 0; j < binSize; j++) {
-                                sum += dataArray[i * binSize + j];
-                            }
-                            finalDataArray[i] = sum / binSize; // Promedio del bin
-                        }
-                    
-                        // Si hay datos sobrantes, agrégalos al último bin
-                        const remainderStart = numRectangles * binSize;
-                        if (remainderStart < dataArray.length) {
-                            let sum = 0;
-                            let count = 0;
-                            for (let i = remainderStart; i < dataArray.length; i++) {
-                                sum += dataArray[i];
-                                count++;
-                            }
-                            finalDataArray[finalDataArray.length - 1] += sum / count;
-                        }
-                    }
-                
-                    for (let i = 0; i < numRectangles; i++) {
-                        // Dibujar un cuadrado con datos del espectro de frecuencias
-                        const xRectangulo = 10;
-                        const xCentroOffSet = 25;
-                        const xCentro = 47 + xCentroOffSet * i;
-                        const yBase = canvas.height - 20;
-
-                        // Calcular el color del arcoíris basado en la frecuencia y en numero de rectangulos
-                        const colorFactor = 300 / (numRectangles - 1);
-                        const hue = (i * colorFactor);
-                        const color = `hsl(${hue}, 100%, 50%)`;
-
-                        // Usar el valor de frecuencia para ajustar la altura de la barra
-                        const barHeight = finalDataArray[i] * 2;
-
-                        // Configuración de glow
-                        ctx.shadowColor = color;
-                        ctx.shadowBlur = 20;
-
-                        ctx.fillStyle = color;
-                        ctx.fillRect(
-                            xCentro - xRectangulo / 2,
-                            yBase - barHeight,
-                            xRectangulo,
-                            barHeight
-                        );
-
-                        const radioCirculo = 10;
-                        ctx.beginPath();
-                            ctx.arc(xCentro, yBase - barHeight - radioCirculo, radioCirculo, 0, Math.PI * 2);
-                            ctx.fillStyle = color;
-                            ctx.fill();
-                        ctx.closePath();
-
-                        // Resetear el glow
-                        ctx.shadowColor = "transparent";
-                        ctx.shadowBlur = 0;
-                    }
-                }
-
-
-                if(visual === 'circunference'){
-                    const dataArray = new Uint8Array(360);
-                    analyserNode.getByteFrequencyData(dataArray);
-                    
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    const radioCirculo = 100 + Math.sin(tiempo + 0.05) * 5;
-                    const circleColor ='rgb(0, 0, 0)'
-
-                    const numRects = 360; // Número de rectángulos
-
-                    // Dibujar los rectángulos a lo largo del radio
-                    const centerX = canvas.width / 2;
-                    const centerY = canvas.height / 2;
-                    const minHeight = 10;
-
-                    for (let i = 0; i < numRects; i++) {
-
-                        const rectWidth = Math.max(minHeight, Math.min(dataArray[i] * 1.5));;
-                        const baseHeight = 2;
-
-                        const angle = ((i / numRects) * Math.PI * 2) + Math.PI;
-
-                        const colorOffSet = tiempo * 5;
-
-                        const colorFactor = 360 / (numRects - 1);
-                        const hue = (i * colorFactor + colorOffSet) % 360;
-                        const color = `hsl(${hue}, 100%, 50%)`;
-
-                        // Calculate rectangle center position
-                        const rectCenterX = centerX + radioCirculo * Math.cos(angle);
-                        const rectCenterY = centerY + radioCirculo * Math.sin(angle);
-            
-                        ctx.save();
-            
-                        ctx.translate(rectCenterX, rectCenterY);
-                        ctx.rotate(angle);
-            
-                        ctx.fillStyle = color;
-                        ctx.fillRect(rectWidth, -baseHeight / 2, -rectWidth, baseHeight);
-            
-                        ctx.restore();
-                    }
-
-                    ctx.beginPath();
-                        ctx.arc(centerX, centerY, radioCirculo, 0, Math.PI * 2);
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; 
-                        ctx.shadowBlur = 5; 
-                        ctx.shadowOffsetX = 5; 
-                        ctx.shadowOffsetY = 5;
-                        ctx.lineWidth = 5;
-                        ctx.strokeStyle = circleColor; 
-                        ctx.stroke();
-                    ctx.closePath();
-                
-                    }
-                }
-
-            tiempo = tiempo + 0.05;
-            requestAnimationFrame(tick);
+            rafRef.current = requestAnimationFrame(tick);
         };
 
-        tick();
+        rafRef.current = requestAnimationFrame(tick);
 
         return () => {
-            cancelAnimationFrame(tick);
-        }
-
+            cancelAnimationFrame(rafRef.current);
+            resizeObserver.disconnect();
+        };
     }, [analyserNode, bufferLength, compression, visual]);
 
+    const handleMouseMove = (e) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+        mousePosRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    };
+
+    const handleMouseLeave = () => { mousePosRef.current = null; };
+
     return (
-        <div id='canvasContainer' ref={containerRef}>
-            <canvas id='myCanvas' ref={canvasRef}></canvas>
+        <div id="canvasContainer" ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+            <canvas id="myCanvas" ref={canvasRef} />
         </div>
     );
 };
+
+function drawBars(ctx, canvas, analyserNode, bufferLength, compression, t) {
+    const rectW = 8;
+    const gap = 5;
+    const step = rectW + gap;
+    const numBars = Math.floor((canvas.width - 40) / step);
+
+    const raw = new Uint8Array(bufferLength);
+    analyserNode.getByteFrequencyData(raw);
+    const data = new Float32Array(numBars);
+
+    if (compression === 'chunk') {
+        const binSize = Math.max(1, Math.floor(bufferLength / numBars));
+        for (let i = 0; i < numBars; i++) {
+            let sum = 0;
+            for (let j = 0; j < binSize; j++) sum += raw[i * binSize + j] ?? 0;
+            data[i] = sum / binSize;
+        }
+    } else if (compression === 'log') {
+        for (let i = 0; i < numBars; i++) {
+            const start = Math.floor(Math.pow(i / numBars, 2) * bufferLength);
+            const end = Math.floor(Math.pow((i + 1) / numBars, 2) * bufferLength);
+            let sum = 0, count = 0;
+            for (let j = start; j < end; j++) { sum += raw[j]; count++; }
+            data[i] = count > 0 ? sum / count : 0;
+        }
+    } else {
+        for (let i = 0; i < numBars; i++) data[i] = raw[i] ?? 0;
+    }
+
+    const yBase = canvas.height - 30;
+    const maxH = canvas.height - 60;
+    const colorShift = (t * 20) % 360;
+
+    for (let i = 0; i < numBars; i++) {
+        const x = 20 + i * step;
+        const barH = Math.max(1, (data[i] / 255) * maxH);
+        const hue = (i / numBars * 300 + colorShift) % 360;
+        const color = `hsl(${hue}, 100%, 55%)`;
+
+        const grad = ctx.createLinearGradient(x, yBase - barH, x, yBase);
+        grad.addColorStop(0, `hsl(${hue}, 100%, 72%)`);
+        grad.addColorStop(1, `hsl(${hue}, 100%, 28%)`);
+
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, yBase - barH, rectW, barH);
+
+        ctx.beginPath();
+        ctx.arc(x + rectW / 2, yBase - barH - 5, 5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsl(${hue}, 100%, 85%)`;
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+    }
+}
+
+function drawCircumference(ctx, canvas, analyserNode, t) {
+    const numBars = 360;
+    const data = new Uint8Array(numBars);
+    analyserNode.getByteFrequencyData(data);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const minDim = Math.min(canvas.width, canvas.height);
+
+    // Average of bass bins (first ~10% of spectrum) drives the pulse
+    const bassSlice = Math.floor(numBars * 0.1);
+    let bassSum = 0;
+    for (let i = 0; i < bassSlice; i++) bassSum += data[i];
+    const bassLevel = bassSum / bassSlice / 255;
+
+    const baseR = minDim * 0.18 + bassLevel * minDim * 0.06 + Math.sin(t * 3) * minDim * 0.008;
+    const maxBarLen = minDim * 0.24;
+    const colorShift = (t * 5) % 360;
+
+    for (let i = 0; i < numBars; i++) {
+        const angle = (i / numBars) * Math.PI * 2 - Math.PI / 2;
+        const barLen = 3 + (data[i] / 255) * maxBarLen;
+        const hue = (i + colorShift) % 360;
+        const color = `hsl(${hue}, 100%, 62%)`;
+
+        ctx.beginPath();
+        ctx.moveTo(cx + baseR * Math.cos(angle), cy + baseR * Math.sin(angle));
+        ctx.lineTo(cx + (baseR + barLen) * Math.cos(angle), cy + (baseR + barLen) * Math.sin(angle));
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+    }
+
+    const ringHue = (t * 30) % 360;
+    ctx.beginPath();
+    ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${ringHue}, 80%, 65%)`;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = `hsl(${ringHue}, 80%, 65%)`;
+    ctx.shadowBlur = 16;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+}
+
+function drawWave(ctx, canvas, analyserNode, bufferLength, t) {
+    const data = new Uint8Array(bufferLength);
+    analyserNode.getByteTimeDomainData(data);
+
+    const cy = canvas.height / 2;
+    const shift = (t * 20) % 360;
+
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    grad.addColorStop(0, `hsl(${shift}, 100%, 62%)`);
+    grad.addColorStop(0.33, `hsl(${(shift + 120) % 360}, 100%, 62%)`);
+    grad.addColorStop(0.66, `hsl(${(shift + 240) % 360}, 100%, 62%)`);
+    grad.addColorStop(1, `hsl(${shift}, 100%, 62%)`);
+
+    ctx.beginPath();
+    for (let i = 0; i < bufferLength; i++) {
+        const x = (i / bufferLength) * canvas.width;
+        const y = cy + ((data[i] - 128) / 128) * (canvas.height * 0.38);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = `hsl(${shift}, 100%, 62%)`;
+    ctx.shadowBlur = 12;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Center line
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(canvas.width, cy);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 0;
+    ctx.stroke();
+}
+
+function drawMouseGlow(ctx, mousePos, t) {
+    if (!mousePos) return;
+
+    const { x, y } = mousePos;
+    const hue = (t * 40) % 360;
+    const r = 80;
+
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grad.addColorStop(0,   `hsla(${hue}, 100%, 70%, 0.18)`);
+    grad.addColorStop(0.4, `hsla(${hue}, 100%, 60%, 0.07)`);
+    grad.addColorStop(1,   `hsla(${hue}, 100%, 50%, 0)`);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    ctx.restore();
+}
